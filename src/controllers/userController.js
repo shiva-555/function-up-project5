@@ -1,6 +1,6 @@
 const userModel = require("../models/userModel")
 const jwt = require("jsonwebtoken")
-let {uploadFile} = require("../controllers/storageController")
+let {uploadFile} = require("../Aws/aws")
 const bcrypt =require("bcrypt")
 
 const isValid = function (value) {
@@ -174,10 +174,6 @@ let requestBody = req.body
         let file = req.files;
         console.log(file);
         if (file && file.length > 0) {
-
-            // if(!isValidFile(file)){
-            //     return res.status(400).send({status : false, message : "This is not a valid image file"})
-            // }
 
             let uploadedFileURL = await uploadFile(file[0]);
 
