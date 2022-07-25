@@ -47,7 +47,7 @@
 
 
 ## User APIs 
-### POST /register
+### 
 - Create a user document from request body. Request body must contain image.
 - Upload image to S3 bucket and save it's public url in user document.
 - Save password in encrypted format. (use bcrypt)
