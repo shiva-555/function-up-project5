@@ -98,7 +98,7 @@ let requestBody = req.body
             return res.status(400).send({ status: false, message: `Password  must include atleast one special character[@$!%?&], one uppercase, one lowercase, one number and should be mimimum 8 to 15 characters long` })
 
             const salt = await bcrypt.genSalt(10);
-            password = await bcrypt.hash(password, salt);
+            requestBody.password = await bcrypt.hash(password, salt);
             console.log(password)
     
         // validation for address     
@@ -191,4 +191,56 @@ let requestBody = req.body
 
 }
 
-    module.exports.createUser = createUser
+
+const createLogin = async function (req, res) {
+    try {
+        let { email, password } = req.body;
+
+        //check if the data in request body is present or not ?
+        if (!isvalidRequest(req.body)) {
+            return res.status(400).send({ status: false, msg: "Please Enter the email and password in Request Body" });
+        }
+        if (!(isValid(email)))  return res.status(400).send({ status: false, msg: " please provide your email" });  
+        if (!(isValidEmail(email))) {
+            return res.status(400).send({ status: false, msg: "Email Id is Invalid" });
+        } 
+        if (!(isValid(password))) return res.status(400).send({ status: false, msg: "PassWord is Required" });
+       if(!isValidPassword(password)) {return res.status(400).send({ status: false, msg: "Passwprd is Invalid" });}
+
+       
+
+
+        // find the object as per email & password
+        let user = await userModel.findOne({ email:email });
+
+        if (!user) return res.status(401).send({ status: false, msg: "email or password is not corerct", });
+       
+    //    Load hash from your password DB.
+    // console.log(user.password)
+        let checkpass = await bcrypt.compare(password,user.password) 
+        // console.log(checkpass)
+         if(!checkpass) return res.status(401).send({ status: false, msg: "password is not matching"})
+            
+        // console.log(user._id)
+        
+        //create the Token 
+        let token = jwt.sign(
+            {
+                userId: user._id.toString(),
+                name: user.name,
+            },
+            "Group7",
+            {expiresIn :"10d"}
+        );
+
+        res.setHeader("x-api-key", token);
+        res.status(201).send({ status: true,msg:"User logged-In successfully",userId:user._id,data:token});
+
+    } catch (err) {
+        return res.status(500).send({ status: false, msg: err.message })
+    }
+};
+
+
+module.exports.createUser=createUser
+module.exports.createLogin=createLogin
