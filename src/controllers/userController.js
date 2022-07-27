@@ -217,9 +217,6 @@ const createLogin = async function (req, res) {
         if (!(isValid(password))) return res.status(400).send({ status: false, msg: "PassWord is Required" });
         if (!isValidPassword(password)) { return res.status(400).send({ status: false, msg: "Passwprd is Invalid" }); }
 
-
-
-
         // find the object as per email & password
         let user = await userModel.findOne({ email: email });
 
@@ -237,7 +234,7 @@ const createLogin = async function (req, res) {
         let token = jwt.sign(
             {
                 userId: user._id.toString(),
-                name: user.name,
+                // name: user.name,
             },
             "Group7",
             { expiresIn: "10d" }
@@ -252,10 +249,10 @@ const createLogin = async function (req, res) {
 };
 const getprofile = async function(req,res){
     try{
-    let data=req.params.userId
-    if(!data) return res.status(400).send({status:false,msg:"enter userId"})
+    let userId=req.params.userId
+    if(!userId) return res.status(400).send({status:false,msg:"enter userId"})
 
-    let validId=isValidObjectId(data)
+    let validId=isValidObjectId(userId)
     if(!validId){return res.status(400).send({status:false,msg:"enter valid  userId"})}
 
     const user = await userModel.findOne({ _id: userId });
@@ -329,7 +326,9 @@ const updateUser = async (req, res) => {
             // console.log(password)
         }
         if (address) {
-            if (typeof address == "string") address = JSON.parse(address);
+            //  address = JSON.parse(address);
+            if (typeof address == "string") 
+             address = JSON.parse(address);
             if (address.shipping) {
                 if (address.shipping.city) {
                     if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, msg: "shipping city is invalid" })
@@ -359,22 +358,26 @@ const updateUser = async (req, res) => {
                 }
             }
         }
-        // let file = req.files;
+        if(req.files.length>0){
+         file = req.files;
         // console.log(file);
-        // if (file && file.length > 0) {
+        if (file && file.length > 0) {
 
-        //     let uploadedFileURL = await uploadFile(file[0]);
+             uploadedFileURL = await uploadFile(file[0]);
+        // console.log(uploadedFileURL)
+            requestBody["profileImage"] = uploadedFileURL;
+            // console.log(requestBody)
 
-        //     requestBody["profileImage"] = uploadedFileURL;
-        // } else {
-        //     return res.status(400).send({ status: false, message: "No file found" });
-        // }
+        } else {
+            return res.status(400).send({ status: false, message: "No file found" });
+        }
+    }
 
-
+console.log(uploadedFileURL)
         let updateUser = await userModel.findOneAndUpdate(
             { _id: userId },
             { $set:{
-                fname, lname, email, password, phone,password:requestBody.password,
+                fname, lname, email, password, phone,password:requestBody.password,profileImage:uploadedFileURL,
                 "address.shipping.city":shippingcity,
                 "address.shipping.street":shippingstreet,
                 "address.shipping.pincode":shippingPincode,

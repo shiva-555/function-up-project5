@@ -7,11 +7,10 @@ const authentication = async function (req, res, next) {
         if (!token) return res.status(400).send({ msg: "please provide token" })
 
         jwt.verify(token, "Group7", (err, user) => {
-            if (err) { return res.status(401).send("failed authenticaton") };
+            if (err) { return res.status(401).send(err.message) };
             req.userlogedin = user;
             //console.log("newconcept",author)
             next()
-
         })
     }
     catch (err) {
