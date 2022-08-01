@@ -4,6 +4,7 @@ let { uploadFile } = require("../Aws/aws")
 const bcrypt = require("bcrypt")
 const mongoose = require("mongoose")
 const { findOne } = require("../models/userModel")
+const validUrl=require("valid-url")
 
 const isValid = function (value) {
     if (typeof value === "undefined" || value === null) return false;
@@ -11,10 +12,10 @@ const isValid = function (value) {
     if (typeof value === "number" && value.toString().trim().length === 0) return false
     return true;
 };
-const isvalidString = function (requestBody) {
-    if (typeof value === "string" && value.trim().length === 0) return false;
-    return true
-}
+// const isvalidString = function (requestBody) {
+//     if (typeof value === "string" && value.trim().length === 0) return false;
+//     return true
+// }
 const isvalidRequest = function (requestBody) {
     return Object.keys(requestBody).length > 0
 }
@@ -186,7 +187,9 @@ const createUser = async function (req, res) {
         if (file && file.length > 0) {
 
             let uploadedFileURL = await uploadFile(file[0]);
-
+            if(!validUrl(uploadedFileURL)) return res.status(400).send({status:false,msg:"uploadFileurl is invalid"})
+            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid image file" })
+            
             requestBody["profileImage"] = uploadedFileURL;
         } else {
             return res.status(400).send({ status: false, message: "No file found" });
@@ -247,15 +250,15 @@ const createLogin = async function (req, res) {
         return res.status(500).send({ status: false, msg: err.message })
     }
 };
-const getprofile = async function(req,res){
-    try{
-    let userId=req.params.userId
-    if(!userId) return res.status(400).send({status:false,msg:"enter userId"})
+const getprofile = async function (req, res) {
+    try {
+        let userId = req.params.userId
+        if (!userId) return res.status(400).send({ status: false, msg: "enter userId" })
 
-    let validId=isValidObjectId(userId)
-    if(!validId){return res.status(400).send({status:false,msg:"enter valid  userId"})}
+        let validId = isValidObjectId(userId)
+        if (!validId) { return res.status(400).send({ status: false, msg: "enter valid  userId" }) }
 
-    const user = await userModel.findOne({ _id: userId });
+        const user = await userModel.findOne({ _id: userId });
 
         return res.status(200).send({ status: true, message: "User profile details", data: user });
     } catch (error) {
@@ -270,13 +273,15 @@ const updateUser = async (req, res) => {
     try {
         let userId = req.params.userId
         let requestBody = req.body
+        if(!isvalidRequest(requestBody)) return res.send({status:false,msg:"request body is empty"})
         if (!userId) return res.status(400).send({ status: false, msg: "user id is required" })
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "user id is not valid" })
-        if (!isvalidRequest(requestBody)) return res.status(400).send({ status: false, msg: "request body is empty" })
+        // if (!isvalidRequest(requestBody)) return res.status(400).send({ status: false, msg: "request body is empty" })
+        if (req.userId != userId) return res.status(401).send({ status: false, msg: "unauthorised user login" })
         let findUser = await userModel.findById({ _id: userId })
         if (!findUser) return res.status(404).send({ status: false, msg: "userid not found" })
 
-        let { fname, lname, email, password, phone,address } = requestBody
+        let { fname, lname, email, password, phone, address } = requestBody
         if (fname === "") return res.status(400).send({ status: false, message: "fname can't be empty" })
         if (fname) {
             // if (!(fname==="")) return res.status(400).send({ status: false, msg: "fname is required" })
@@ -327,8 +332,8 @@ const updateUser = async (req, res) => {
         }
         if (address) {
             //  address = JSON.parse(address);
-            if (typeof address == "string") 
-             address = JSON.parse(address);
+            if (typeof address == "string")
+                address = JSON.parse(address);
             if (address.shipping) {
                 if (address.shipping.city) {
                     if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, msg: "shipping city is invalid" })
@@ -358,35 +363,33 @@ const updateUser = async (req, res) => {
                 }
             }
         }
-        if(req.files.length>0){
-         file = req.files;
-        // console.log(file);
+        let file = req.files;
+        console.log(file);
         if (file && file.length > 0) {
 
-             uploadedFileURL = await uploadFile(file[0]);
-        // console.log(uploadedFileURL)
-            requestBody["profileImage"] = uploadedFileURL;
-            // console.log(requestBody)
+            var uploadedFileURL = await uploadFile(file[0]);
+            if(!validUrl(uploadedFileURL)) return res.status(400).send({status:false,msg:"uploadFileurl is invalid"})
 
-        } else {
-            return res.status(400).send({ status: false, message: "No file found" });
+            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid image file" })
+            // console.log(uploadedFileURL)
         }
-    }
 
-console.log(uploadedFileURL)
+
+        // console.log(uploadedFileURL)
         let updateUser = await userModel.findOneAndUpdate(
             { _id: userId },
-            { $set:{
-                fname, lname, email, password, phone,password:requestBody.password,profileImage:uploadedFileURL,
-                "address.shipping.city":shippingcity,
-                "address.shipping.street":shippingstreet,
-                "address.shipping.pincode":shippingPincode,
-                "address.billing.city":billingcity,
-                "address.billing.street":billingstreet,
-                "address.billing.pincode":billingPincode,
-                updateAt:Date.now()
-            }
-        },
+            {
+                $set: {
+                    fname, lname, email, password, phone, password: requestBody.password, profileImage: uploadedFileURL,
+                    "address.shipping.city": shippingcity,
+                    "address.shipping.street": shippingstreet,
+                    "address.shipping.pincode": shippingPincode,
+                    "address.billing.city": billingcity,
+                    "address.billing.street": billingstreet,
+                    "address.billing.pincode": billingPincode,
+                    updateAt: Date.now()
+                }
+            },
             { new: true }
         )
         return res.status(200).send({ status: true, data: updateUser })
@@ -401,5 +404,5 @@ console.log(uploadedFileURL)
 
 module.exports.createUser = createUser
 module.exports.createLogin = createLogin
-module.exports.getprofile=getprofile
+module.exports.getprofile = getprofile
 module.exports.updateUser = updateUser
