@@ -187,7 +187,7 @@ const createUser = async function (req, res) {
         if (file && file.length > 0) {
 
             let uploadedFileURL = await uploadFile(file[0]);
-            if(!validUrl(uploadedFileURL)) return res.status(400).send({status:false,msg:"uploadFileurl is invalid"})
+            if(!validUrl.isWebUri(uploadedFileURL)) return res.status(400).send({status:false,msg:"uploadFileurl is invalid"})
             if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid image file" })
             
             requestBody["profileImage"] = uploadedFileURL;

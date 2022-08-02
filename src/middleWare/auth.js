@@ -7,7 +7,7 @@ const authentication = async function (req, res, next) {
         // console.log(token)
         if (!token) return res.status(400).send({ msg: "please provide token" })
 
-        let decodedToken =jwt.verify(token[1], "Group7", (err, decoded) => {
+        let decodedToken =jwt.verify(token,"Group7", (err, decoded) => {
            
             if (err) {
                 return res.status(401).send({msg:"token is invalid"})

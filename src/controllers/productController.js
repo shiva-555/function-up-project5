@@ -29,6 +29,7 @@ const isValidNum = function (value) {
 //     const size = /[^A-Z]+gi,""/
 //     return size.test(value)
 // }
+
 const isValidObjectId = function (id) {
     var ObjectId = mongoose.Types.ObjectId;
     return ObjectId.isValid(id)
@@ -74,8 +75,8 @@ let createProduct = async function (req, res) {
 
             let uploadedFileURL = await uploadFile(file[0]);
             if (!validUrl.isWebUri(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid uploadUrl" })
-            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid image file" })
 
+            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid image file" })
             requestBody["productImage"] = uploadedFileURL;
         } else {
             return res.status(400).send({ status: false, message: "No file found" });
