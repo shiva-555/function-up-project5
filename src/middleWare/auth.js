@@ -23,7 +23,7 @@ const authentication = async function (req, res, next) {
       jwt.verify(newtoken[1], "Group7", { ignoreExpiration: true }, function (error, decodedToken) {
         // if token is not valid
         if (error) {
-          return res.status(400).send({ status: false, msg: "Token is invalid!" });
+          return res.status(401).send({ status: false, msg: "Token is invalid!" });
   
           // if token is valid
         } else {
@@ -60,7 +60,7 @@ const authorisation = async function (req, res, next) {
       }
       // CASE-3: userId does not exist (in our database)
       let user = await userModel.findOne({ _id: userId }); // database call
-      console.log(user);
+      // console.log(user);
       if (!user) {
         return res.status(400).send({
           status: false,

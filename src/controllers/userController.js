@@ -44,7 +44,7 @@ const isValidObjectId = function (id) {
     return ObjectId.isValid(id)
 }
 
-
+//======================================createUser===============================================
 const createUser = async function (req, res) {
     try {
         let requestBody = req.body
@@ -82,7 +82,7 @@ const createUser = async function (req, res) {
         //checking for unique email address in db
         let uniqueEmail = await userModel.findOne({ email: email })
         if (uniqueEmail) {
-            return res.status(409).send({ status: false, msg: "Email already exist" })
+            return res.status(409).send({ status: false, messege: "Email already exist" })
         }
 
         //validation for phone
@@ -133,7 +133,7 @@ const createUser = async function (req, res) {
         }
         let { street, city, pincode } = shipping
         if (!(street)) {
-            return res.status(400).send({ status: false, message: "shippinggfgvbcbcb street is required" });
+            return res.status(400).send({ status: false, message: "shipping street is required" });
         }
 
         if (!(city)) {
@@ -187,8 +187,8 @@ const createUser = async function (req, res) {
         if (file && file.length > 0) {
 
             let uploadedFileURL = await uploadFile(file[0]);
-            if(!validUrl.isWebUri(uploadedFileURL)) return res.status(400).send({status:false,msg:"uploadFileurl is invalid"})
-            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid image file" })
+            if(!validUrl.isWebUri(uploadedFileURL)) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
+            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, messege: "invalid image file" })
             
             requestBody["profileImage"] = uploadedFileURL;
         } else {
@@ -204,32 +204,32 @@ const createUser = async function (req, res) {
 
 }
 
-
+//=============================================create login=======================================
 const createLogin = async function (req, res) {
     try {
         let { email, password } = req.body;
 
         //check if the data in request body is present or not ?
         if (!isvalidRequest(req.body)) {
-            return res.status(400).send({ status: false, msg: "Please Enter the email and password in Request Body" });
+            return res.status(400).send({ status: false, messege: "Please Enter the email and password in Request Body" });
         }
-        if (!(isValid(email))) return res.status(400).send({ status: false, msg: " please provide your email" });
+        if (!(isValid(email))) return res.status(400).send({ status: false, messege: " please provide your email" });
         if (!(isValidEmail(email))) {
-            return res.status(400).send({ status: false, msg: "Email Id is Invalid" });
+            return res.status(400).send({ status: false, messege: "Email Id is Invalid" });
         }
-        if (!(isValid(password))) return res.status(400).send({ status: false, msg: "PassWord is Required" });
-        if (!isValidPassword(password)) { return res.status(400).send({ status: false, msg: "Passwprd is Invalid" }); }
+        if (!(isValid(password))) return res.status(400).send({ status: false, messege: "PassWord is Required" });
+        if (!isValidPassword(password)) { return res.status(400).send({ status: false, messege: "Passwprd is Invalid" }); }
 
         // find the object as per email & password
         let user = await userModel.findOne({ email: email });
 
-        if (!user) return res.status(401).send({ status: false, msg: "email or password is not corerct", });
+        if (!user) return res.status(401).send({ status: false, messege: "email or password is not corerct", });
 
         //    Load hash from your password DB.
         // console.log(user.password)
         let checkpass = await bcrypt.compare(password, user.password)
         // console.log(checkpass)
-        if (!checkpass) return res.status(401).send({ status: false, msg: "password is not matching" })
+        if (!checkpass) return res.status(401).send({ status: false, messege: "password is not matching" })
 
         // console.log(user._id)
 
@@ -244,19 +244,21 @@ const createLogin = async function (req, res) {
         );
 
         res.setHeader("x-api-key", token);
-        res.status(201).send({ status: true, msg: "User logged-In successfully", userId: user._id, data: token });
+        res.status(201).send({ status: true, messege: "User logged-In successfully", userId: user._id, data: token });
 
     } catch (err) {
-        return res.status(500).send({ status: false, msg: err.message })
+        return res.status(500).send({ status: false, messege: err.message })
     }
 };
+
+//=====================================get profile================================================
 const getprofile = async function (req, res) {
     try {
         let userId = req.params.userId
-        if (!userId) return res.status(400).send({ status: false, msg: "enter userId" })
+        if (!userId) return res.status(400).send({ status: false, messege: "enter userId" })
 
         let validId = isValidObjectId(userId)
-        if (!validId) { return res.status(400).send({ status: false, msg: "enter valid  userId" }) }
+        if (!validId) { return res.status(400).send({ status: false, messege: "enter valid  userId" }) }
 
         const user = await userModel.findOne({ _id: userId });
 
@@ -267,37 +269,37 @@ const getprofile = async function (req, res) {
     }
 }
 
-
+//==========================================update user=====================================================
 const updateUser = async (req, res) => {
 
     try {
         let userId = req.params.userId
         let requestBody = req.body
-        if(!isvalidRequest(requestBody)) return res.send({status:false,msg:"request body is empty"})
-        if (!userId) return res.status(400).send({ status: false, msg: "user id is required" })
-        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "user id is not valid" })
-        // if (!isvalidRequest(requestBody)) return res.status(400).send({ status: false, msg: "request body is empty" })
-        if (req.userId != userId) return res.status(401).send({ status: false, msg: "unauthorised user login" })
+        if(!isvalidRequest(requestBody)) return res.status(400).send({status:false,messege:"request body is empty"})
+        if (!userId) return res.status(400).send({ status: false, messege: "user id is required" })
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, messege: "user id is not valid" })
+        // if (!isvalidRequest(requestBody)) return res.status(400).send({ status: false, messege: "request body is empty" })
+        // if (req.userId != userId) return res.status(401).send({ status: false, messege: "unauthorised user login" })
         let findUser = await userModel.findById({ _id: userId })
-        if (!findUser) return res.status(404).send({ status: false, msg: "userid not found" })
+        if (!findUser) return res.status(404).send({ status: false, messege: "userid not found" })
 
         let { fname, lname, email, password, phone, address } = requestBody
         if (fname === "") return res.status(400).send({ status: false, message: "fname can't be empty" })
         if (fname) {
-            // if (!(fname==="")) return res.status(400).send({ status: false, msg: "fname is required" })
-            if (!isValidName(fname)) return res.status(400).send({ status: false, msg: "fname is not in correct format" })
+            // if (!(fname==="")) return res.status(400).send({ status: false, messege: "fname is required" })
+            if (!isValidName(fname)) return res.status(400).send({ status: false, messege: "fname is not in correct format" })
         }
         //lname
         if (lname === "") return res.status(400).send({ status: false, message: "lname can't be empty" })
         if (lname) {
-            // if (!isValid(lname)) return res.status(400).send({ status: false, msg: "lname is required" })
-            if (!isValidName(lname)) return res.status(400).send({ status: false, msg: "lname is not in correct format" })
+            // if (!isValid(lname)) return res.status(400).send({ status: false, messege: "lname is required" })
+            if (!isValidName(lname)) return res.status(400).send({ status: false, messege: "lname is not in correct format" })
         }
         //phone
         if (phone === "") return res.status(400).send({ status: false, message: "lname can't be empty" })
         if (phone) {
-            if (!isValid(phone)) return res.status(400).send({ status: false, msg: "phone is required" })
-            if (!isValidNumber(phone)) return res.status(400).send({ status: false, msg: "number is not in correct format" })
+            if (!isValid(phone)) return res.status(400).send({ status: false, messege: "phone is required" })
+            if (!isValidNumber(phone)) return res.status(400).send({ status: false, messege: "number is not in correct format" })
 
             let uniquePhone = await userModel.findOne({ phone: phone })
 
@@ -307,24 +309,24 @@ const updateUser = async (req, res) => {
             }
         }
         //email
-        if (email === "") return res.status(400).send({ status: false, message: "lname can't be empty" })
+        if (email === "") return res.status(400).send({ status: false, message: "email can't be empty" })
 
         if (email) {
-            if (!isValidEmail(email)) return res.status(400).send({ status: false, msg: "email is not in correct format" })
+            if (!isValidEmail(email)) return res.status(400).send({ status: false, messege: "email is not in correct format" })
 
             let uniqueEmail = await userModel.findOne({ email: email })
             if (uniqueEmail) {
-                return res.status(409).send({ status: false, msg: "Email already exist" })
+                return res.status(409).send({ status: false, messege: "Email already exist" })
             }
         }
         //password
         if (password === "") return res.status(400).send({ status: false, message: "lname can't be empty" })
 
         if (password) {
-            if (!isValidPassword(password)) return res.status(400).send({ status: false, msg: "password is not in correct format" })
+            if (!isValidPassword(password)) return res.status(400).send({ status: false, messege: "password is not in correct format" })
             // let checkpass = await bcrypt.compare(password, user.password)
             // // console.log(checkpass)
-            // if (!checkpass) return res.status(401).send({ status: false, msg: "password is not matching" })
+            // if (!checkpass) return res.status(401).send({ status: false, messege: "password is not matching" })
 
             const salt = await bcrypt.genSalt(10);
             requestBody.password = await bcrypt.hash(password, salt);
@@ -336,41 +338,45 @@ const updateUser = async (req, res) => {
                 address = JSON.parse(address);
             if (address.shipping) {
                 if (address.shipping.city) {
-                    if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, msg: "shipping city is invalid" })
+                    if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, messege: "shipping city is invalid" })
                     var shippingcity = address.shipping.city
                 }
                 if (address.shipping.street) {
-                    if (!isValidName(address.shipping.street)) return res.status(400).send({ status: false, msg: "shipping street is invalid" })
+                    if (!isValidName(address.shipping.street)) return res.status(400).send({ status: false, messege: "shipping street is invalid" })
                     var shippingstreet = address.shipping.street
                 }
                 if (address.shipping.pincode) {
-                    if (!isValidPinCode(address.shipping.pincode)) return res.status(400).send({ status: false, msg: "shipping pincode is invalid" })
+                    if (!isValidPinCode(address.shipping.pincode)) return res.status(400).send({ status: false, messege: "shipping pincode is invalid" })
                     var shippingPincode = address.shipping.pincode
                 }
                 if (address.billing) {
                     if (address.billing.city) {
-                        if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, msg: "billing city is invalid" })
+                        if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, messege: "billing city is invalid" })
                         var billingcity = address.billing.city
                     }
                     if (address.billing.street) {
-                        if (!isValidName(address.billing.street)) return res.status(400).send({ status: false, msg: "billing street is invalid" })
+                        if (!isValidName(address.billing.street)) return res.status(400).send({ status: false, messege: "billing street is invalid" })
                         var billingstreet = address.billing.street
                     }
                     if (address.billing.pincode) {
-                        if (!isValidPinCode(address.billing.pincode)) return res.status(400).send({ status: false, msg: "billing pincode is invalid" })
+                        if (!isValidPinCode(address.billing.pincode)) return res.status(400).send({ status: false, messege: "billing pincode is invalid" })
                         var billingPincode = address.billing.pincode
                     }
                 }
             }
         }
         let file = req.files;
+        // if(!file) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
+
         console.log(file);
         if (file && file.length > 0) {
+            if(uploadFile[0]===-1)
 
             var uploadedFileURL = await uploadFile(file[0]);
-            if(!validUrl(uploadedFileURL)) return res.status(400).send({status:false,msg:"uploadFileurl is invalid"})
+            // if(!uploadedFileURL) return res.status(400).send({status:false,messege:"akal ke "})
+            if(!validUrl(uploadedFileURL)) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
 
-            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, msg: "invalid image file" })
+            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, messege: "invalid image file" })
             // console.log(uploadedFileURL)
         }
 
