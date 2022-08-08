@@ -1,6 +1,6 @@
 const userModel = require("../models/userModel")
 const jwt = require("jsonwebtoken")
-let { uploadFile } = require("../Aws/aws")
+let { uploadFile } = require("../aws/aws")
 const bcrypt = require("bcrypt")
 const mongoose = require("mongoose")
 const { findOne } = require("../models/userModel")
@@ -275,7 +275,7 @@ const updateUser = async (req, res) => {
     try {
         let userId = req.params.userId
         let requestBody = req.body
-        if(!isvalidRequest(requestBody)) return res.status(400).send({status:false,messege:"request body is empty"})
+        // if(!isvalidRequest(requestBody)) return res.status(400).send({status:false,messege:"request body is empty"})
         if (!userId) return res.status(400).send({ status: false, messege: "user id is required" })
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, messege: "user id is not valid" })
         // if (!isvalidRequest(requestBody)) return res.status(400).send({ status: false, messege: "request body is empty" })
@@ -296,9 +296,9 @@ const updateUser = async (req, res) => {
             if (!isValidName(lname)) return res.status(400).send({ status: false, messege: "lname is not in correct format" })
         }
         //phone
-        if (phone === "") return res.status(400).send({ status: false, message: "lname can't be empty" })
+        if (phone === "") return res.status(400).send({ status: false, message: "phonenum can't be empty" })
         if (phone) {
-            if (!isValid(phone)) return res.status(400).send({ status: false, messege: "phone is required" })
+            // if (!isValid(phone)) return res.status(400).send({ status: false, messege: "phone is required" })
             if (!isValidNumber(phone)) return res.status(400).send({ status: false, messege: "number is not in correct format" })
 
             let uniquePhone = await userModel.findOne({ phone: phone })
@@ -320,7 +320,7 @@ const updateUser = async (req, res) => {
             }
         }
         //password
-        if (password === "") return res.status(400).send({ status: false, message: "lname can't be empty" })
+        if (password === "") return res.status(400).send({ status: false, message: "password can't be empty" })
 
         if (password) {
             if (!isValidPassword(password)) return res.status(400).send({ status: false, messege: "password is not in correct format" })
@@ -366,15 +366,14 @@ const updateUser = async (req, res) => {
             }
         }
         let file = req.files;
-        // if(!file) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
-
         console.log(file);
+        if(!isvalidRequest(requestBody)&& file.length==0) return res.status(400).send({status:false,messege:"request body is empty"})
+        
         if (file && file.length > 0) {
-            if(uploadFile[0]===-1)
 
             var uploadedFileURL = await uploadFile(file[0]);
-            // if(!uploadedFileURL) return res.status(400).send({status:false,messege:"akal ke "})
-            if(!validUrl(uploadedFileURL)) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
+            console.log(uploadedFileURL)
+            if(!isValid.isWebUri(uploadedFileURL)) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
 
             if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, messege: "invalid image file" })
             // console.log(uploadedFileURL)
