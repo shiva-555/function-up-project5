@@ -12,10 +12,8 @@ const isValid = function (value) {
     if (typeof value === "number" && value.toString().trim().length === 0) return false
     return true;
 };
-// const isvalidString = function (requestBody) {
-//     if (typeof value === "string" && value.trim().length === 0) return false;
-//     return true
-// }
+
+
 const isvalidRequest = function (requestBody) {
     return Object.keys(requestBody).length > 0
 }
@@ -113,10 +111,10 @@ const createUser = async function (req, res) {
         console.log(password)
 
         // validation for address     
+        if(!isValid (requestBody.address))  return res.send({msg:"address is required"})
 
         let double = JSON.parse(requestBody.address);
         console.log(double)
-
         if (typeof double != "object") {
             return res.status(400).send({ status: false, message: "address should be an object" });
         }
@@ -182,18 +180,13 @@ const createUser = async function (req, res) {
         }
         requestBody.address = double
 
-        let file = req.files;
-        console.log(file);
-        if (file && file.length > 0) {
-
-            let uploadedFileURL = await uploadFile(file[0]);
-            if(!validUrl.isWebUri(uploadedFileURL)) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
-            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, messege: "invalid image file" })
-            
-            requestBody["profileImage"] = uploadedFileURL;
-        } else {
-            return res.status(400).send({ status: false, message: "No file found" });
+        let files = req.files
+        if (!(files && files.length > 0)) {
+            return res.status(400).send({ status: false, message: "Please Provide Product Image" });
         }
+        let uploadedproductImage = await uploadFile(files[0])
+        requestBody.profileImage = uploadedproductImage
+        
         let savedData = await userModel.create(requestBody)
         return res.status(201).send({ status: true, data: savedData })
 
@@ -275,30 +268,25 @@ const updateUser = async (req, res) => {
     try {
         let userId = req.params.userId
         let requestBody = req.body
-        // if(!isvalidRequest(requestBody)) return res.status(400).send({status:false,messege:"request body is empty"})
+    
         if (!userId) return res.status(400).send({ status: false, messege: "user id is required" })
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, messege: "user id is not valid" })
-        // if (!isvalidRequest(requestBody)) return res.status(400).send({ status: false, messege: "request body is empty" })
-        // if (req.userId != userId) return res.status(401).send({ status: false, messege: "unauthorised user login" })
         let findUser = await userModel.findById({ _id: userId })
         if (!findUser) return res.status(404).send({ status: false, messege: "userid not found" })
 
-        let { fname, lname, email, password, phone, address } = requestBody
+        let { fname, lname, email, password, phone, address,profileImage } = requestBody
         if (fname === "") return res.status(400).send({ status: false, message: "fname can't be empty" })
         if (fname) {
-            // if (!(fname==="")) return res.status(400).send({ status: false, messege: "fname is required" })
             if (!isValidName(fname)) return res.status(400).send({ status: false, messege: "fname is not in correct format" })
         }
         //lname
         if (lname === "") return res.status(400).send({ status: false, message: "lname can't be empty" })
         if (lname) {
-            // if (!isValid(lname)) return res.status(400).send({ status: false, messege: "lname is required" })
             if (!isValidName(lname)) return res.status(400).send({ status: false, messege: "lname is not in correct format" })
         }
         //phone
-        if (phone === "") return res.status(400).send({ status: false, message: "phonenum can't be empty" })
+        if (phone === "") return res.status(400).send({ status: false, message: "phone num can't be empty" })
         if (phone) {
-            // if (!isValid(phone)) return res.status(400).send({ status: false, messege: "phone is required" })
             if (!isValidNumber(phone)) return res.status(400).send({ status: false, messege: "number is not in correct format" })
 
             let uniquePhone = await userModel.findOne({ phone: phone })
@@ -324,16 +312,12 @@ const updateUser = async (req, res) => {
 
         if (password) {
             if (!isValidPassword(password)) return res.status(400).send({ status: false, messege: "password is not in correct format" })
-            // let checkpass = await bcrypt.compare(password, user.password)
-            // // console.log(checkpass)
-            // if (!checkpass) return res.status(401).send({ status: false, messege: "password is not matching" })
-
             const salt = await bcrypt.genSalt(10);
             requestBody.password = await bcrypt.hash(password, salt);
-            // console.log(password)
+        
         }
         if (address) {
-            //  address = JSON.parse(address);
+            
             if (typeof address == "string")
                 address = JSON.parse(address);
             if (address.shipping) {
@@ -365,27 +349,22 @@ const updateUser = async (req, res) => {
                 }
             }
         }
-        let file = req.files;
-        console.log(file);
-        if(!isvalidRequest(requestBody)&& file.length==0) return res.status(400).send({status:false,messege:"request body is empty"})
         
-        if (file && file.length > 0) {
-
-            var uploadedFileURL = await uploadFile(file[0]);
-            console.log(uploadedFileURL)
-            if(!isValid.isWebUri(uploadedFileURL)) return res.status(400).send({status:false,messege:"uploadFileurl is invalid"})
-
-            if (!(/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(uploadedFileURL)) return res.status(400).send({ status: false, messege: "invalid image file" })
-            // console.log(uploadedFileURL)
+        let files = req.files
+        let uploadFileURL;
+        //check file of profileImage 
+        if (files && files.length > 0) {
+            //upload file to S3 of AWS
+            uploadFileURL = await uploadFile(files[0])
+            //store the URL where profile image uploaded in a variable (AWS Url)
+            profileImage = uploadFileURL
         }
-
-
-        // console.log(uploadedFileURL)
+   
         let updateUser = await userModel.findOneAndUpdate(
             { _id: userId },
             {
                 $set: {
-                    fname, lname, email, password, phone, password: requestBody.password, profileImage: uploadedFileURL,
+                    fname, lname, email, password, phone, password: requestBody.password, profileImage,
                     "address.shipping.city": shippingcity,
                     "address.shipping.street": shippingstreet,
                     "address.shipping.pincode": shippingPincode,

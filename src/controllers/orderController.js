@@ -36,7 +36,7 @@ const createOrder = async function (req, res) {
     // find User
     const findUser = await userModel.findOne({ _id: userId });
     if (!findUser) {
-        return res.status(400).send({ status: false, message: "user doesn't exists for uderId" });
+        return res.status(400).send({ status: false, message: "user doesn't exists for userId" });
     };
 
     if (!cartId) {
@@ -110,7 +110,7 @@ const createOrder = async function (req, res) {
         { items: [], totalPrice: 0, totalItems: 0 }
     )
 
-    return res.status(200).send({ status: true, message: "Sucessfully Order placed", data: savedOrder });
+    return res.status(201).send({ status: true, message: "Sucessfully Order placed", data: savedOrder });
 }
 
 //=====================================update order===============================================
@@ -118,7 +118,7 @@ const createOrder = async function (req, res) {
 const updateOrder = async (req, res) => {
     //- Make sure that only a cancellable order could be canceled. Else send an appropriate error message and response.
     try {
-      console.log("Update Order");
+      // console.log("Update Order");
   
       const userIdParams = req.params.userId.trim();
       if (!isValidObjectId(userIdParams)) {

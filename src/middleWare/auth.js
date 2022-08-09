@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 const userModel = require ("../models/userModel")
 const mongoose=require("mongoose")
+
 const isValidObjectId = function (id) {
     var ObjectId = mongoose.Types.ObjectId;
     return ObjectId.isValid(id)
@@ -19,7 +20,7 @@ const authentication = async function (req, res, next) {
         return res.status(400).send({ status: false, msg: "Token required! Please login to generate token" });
       }
       let newtoken=token.split(" ")
-  
+  // /console.log(newtoken)
       jwt.verify(newtoken[1], "Group7", { ignoreExpiration: true }, function (error, decodedToken) {
         // if token is not valid
         if (error) {
