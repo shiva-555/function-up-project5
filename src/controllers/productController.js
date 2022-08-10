@@ -253,17 +253,7 @@ const updatedProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: "Please enter atleast one key for updation" })
         }
         
-    //     let productImage = req.files[0];
-    // if (profileImage) {
-    //   if (!isvalidImage(productImage))
-    //     return res.status(400).send({
-    //       status: false,
-    //       message: "Image should be in the format of jpg, png, jpeg",
-    //     });
-    //   let uploadedImage = awaituploadFile(productImage);
-
-    //   requestBody.productImage = uploadedImage;
-//    ? }
+   
         let file=req.files
 
         console.log(req.files);

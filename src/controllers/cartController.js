@@ -16,10 +16,7 @@ const isValidObjectId = function (id) {
     var ObjectId = mongoose.Types.ObjectId;
     return ObjectId.isValid(id)
 }
-// const isvalidQuantity = function isInteger(value) {
-//     if (value < 1) return false
-//     if (value % 1 == 0) return true
-// }
+
 
 
 const createCart = async (req, res) => {
